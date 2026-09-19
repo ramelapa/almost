@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ArrowRight, ShieldCheck, RefreshCw } from "lucide-react";
+import { Sparkles, ArrowRight, RefreshCw } from "lucide-react";
 import { Navbar, DopamineDial, TactileButton } from "@/packages/ui";
 import { Experience, MuseumItem } from "@/packages/schemas";
 import { EngineRunner } from "@/packages/experience-engine";
@@ -303,15 +303,6 @@ export default function HomePage() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Subtle Footer */}
-      <footer className="max-w-7xl mx-auto w-full pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono text-zinc-600 border-t border-white/5 gap-3">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500/70" />
-          <span>ALMOST &bull; Zero credit cards &bull; Zero transactions &bull; Zero possession</span>
-        </div>
-        <span>Maximum delight per minute</span>
-      </footer>
     </main>
   );
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Playfair_Display, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { SoundProvider } from "@/packages/sound-engine";
-import { AmbientBackground } from "@/packages/ui";
+import { AmbientBackground, Footer } from "@/packages/ui";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -45,6 +45,7 @@ export default function RootLayout({
         <SoundProvider>
           <AmbientBackground />
           <div className="relative z-10 flex-1 flex flex-col">{children}</div>
+          <Footer />
         </SoundProvider>
       </body>
     </html>

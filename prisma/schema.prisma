@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sessions  Session[]
+}
+
+model Session {
+  id           String            @id @default(uuid())
+  userId       String?
+  user         User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime          @default(now())
+  lastActiveAt DateTime          @default(now())
+  experiences  Experience[]
+  museumItems  MuseumItem[]
+  events       ExperienceEvent[]
+}
+
+model Experience {
+  id             String            @id @default(uuid())
+  sessionId      String
+  session        Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  type           String            // zero-cart, dream-trip, five-minute-escape, billion-dollar, quit-cart
+  title          String
+  subtitle       String?
+  theme          Json              // style, intensity, background, accentColor
+  stages         Json              // array of stages
+  conclusion     Json              // headline, message, stats, avoidedAmount
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  events         ExperienceEvent[]
+  museumItem     MuseumItem?
+}
+
+model ExperienceEvent {
+  id           String     @id @default(uuid())
+  sessionId    String
+  session      Session    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  experienceId String?
+  experience   Experience? @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  eventType    String     // started, stage_changed, completed, abandoned, option_selected
+  stageId      String?
+  payload      Json?
+  createdAt    DateTime   @default(now())
+}
+
+model MuseumItem {
+  id             String      @id @default(uuid())
+  sessionId      String
+  session        Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  experienceId   String?     @unique
+  experience     Experience? @relation(fields: [experienceId], references: [id], onDelete: SetNull)
+  experienceType String
+  title          String
+  subtitle       String?
+  fictionalPrice Float       @default(0)
+  avoidedAmount  Float       @default(0)
+  imageUrl       String?
+  reflectionQuote String?
+  stats          Json?
+  tags           String[]    @default([])
+  createdAt      DateTime    @default(now())
+}
+
+model AnonymousFeedEvent {
+  id             String   @id @default(uuid())
+  location       String   @default("Someone somewhere")
+  message        String
+  experienceType String
+  avoidedAmount  Float    @default(0)
+  meTooCount     Int      @default(0)
+  isDemo         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+}
+
+model SharedArtifact {
+  id             String   @id @default(uuid())
+  experienceType String
+  title          String
+  fictionalPrice Float    @default(0)
+  avoidedPrice   Float    @default(0)
+  imageUrl       String?
+  aspectRatio    String   @default("1:1")
+  createdAt      DateTime @default(now())
+}

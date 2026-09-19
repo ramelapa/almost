@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: almost-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://almost_user:almost_pass@postgres:5432/almost_db?schema=public
+      - AI_PROVIDER=mock # or "ollama" / "openai"
+      - AI_BASE_URL=http://ollama:11434/v1
+      - IMAGE_PROVIDER=mock
+      - NODE_ENV=production
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: almost-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: almost_user
+      POSTGRES_PASSWORD: almost_pass
+      POSTGRES_DB: almost_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Optional local LLM runner (uncomment to run local Ollama with zero paid API costs)
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: almost-ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+
+volumes:
+  postgres_data:
+  # ollama_data:

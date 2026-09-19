@@ -1,0 +1,605 @@
+import { z } from "zod";
+import { LLMProvider } from "./types";
+import { Experience, ExperienceRouterOutput } from "../schemas";
+
+export class MockLLMProvider implements LLMProvider {
+  name = "mock";
+
+  async generateStructured<T>(
+    prompt: string,
+    schema: z.ZodSchema<T>,
+    _systemPrompt?: string
+  ): Promise<T> {
+    // If router output is requested
+    if (this.isRouterSchema(schema)) {
+      const routed = this.routePrompt(prompt);
+      return routed as unknown as T;
+    }
+
+    // If experience generation is requested
+    const experience = this.generateExperienceForPrompt(prompt);
+    return experience as unknown as T;
+  }
+
+  private isRouterSchema(schema: z.ZodSchema<unknown>): boolean {
+    const description = (schema as unknown as { description?: string }).description;
+    return Boolean(description?.includes("router") || JSON.stringify(schema).includes("experienceType"));
+  }
+
+  public routePrompt(prompt: string, intensity = 3): ExperienceRouterOutput {
+    const p = prompt.toLowerCase();
+
+    // 1. Billion Dollar Mode
+    if (
+      p.includes("billion") ||
+      p.includes("million") ||
+      p.includes("spend it") ||
+      p.includes("lottery") ||
+      p.includes("infinite money")
+    ) {
+      return {
+        experienceType: "billion-dollar",
+        title: "Billion Dollar Spending Spree",
+        intent: "extravagance",
+        mood: "euphoric",
+        intensity,
+        duration: 4,
+        theme: "gold-monolith",
+      };
+    }
+
+    // 2. QuitCart (tempted impulse buy)
+    if (
+      p.includes("almost bought") ||
+      p.includes("tempted") ||
+      p.includes("quit cart") ||
+      p.includes("impulse") ||
+      p.includes("talk me out of") ||
+      p.includes("$") ||
+      p.includes("cart") ||
+      p.includes("save my money")
+    ) {
+      return {
+        experienceType: "quit-cart",
+        title: "Impulse Intercept",
+        intent: "prudence",
+        mood: "grounded",
+        intensity,
+        duration: 3,
+        theme: "minimal-editorial",
+      };
+    }
+
+    // 3. DreamTrip (travel, flights, destinations)
+    if (
+      p.includes("switzerland") ||
+      p.includes("travel") ||
+      p.includes("trip") ||
+      p.includes("vacation") ||
+      p.includes("flight") ||
+      p.includes("hotel") ||
+      p.includes("paris") ||
+      p.includes("tokyo") ||
+      p.includes("alps") ||
+      p.includes("amalfi") ||
+      p.includes("visit") ||
+      p.includes("destination")
+    ) {
+      return {
+        experienceType: "dream-trip",
+        title: "Fictional Expedition",
+        intent: "wanderlust",
+        mood: "adventurous",
+        intensity,
+        duration: 4,
+        theme: "editorial-alpine",
+      };
+    }
+
+    // 4. Five-Minute Escape (relaxation, peace, quiet, breathing)
+    if (
+      p.includes("peace") ||
+      p.includes("relax") ||
+      p.includes("exhausted") ||
+      p.includes("bored") ||
+      p.includes("overwhelmed") ||
+      p.includes("restless") ||
+      p.includes("quiet") ||
+      p.includes("away from everything") ||
+      p.includes("rain") ||
+      p.includes("breath") ||
+      p.includes("escape") ||
+      p.includes("meditat")
+    ) {
+      return {
+        experienceType: "five-minute-escape",
+        title: "Sanctuary in the Rain",
+        intent: "restoration",
+        mood: "contemplative",
+        intensity,
+        duration: 5,
+        theme: "zen-monochrome",
+      };
+    }
+
+    // 5. ZeroCart (Default fantasy shopping: supercar, watch, telescope, espresso machine...)
+    return {
+      experienceType: "zero-cart",
+      title: "The Ultimate Possession Simulation",
+      intent: "aspiration",
+      mood: "excited",
+      intensity,
+      duration: 4,
+      theme: "luxury-obsidian",
+    };
+  }
+
+  public generateExperienceForPrompt(prompt: string, intensity = 3): Experience {
+    const route = this.routePrompt(prompt, intensity);
+    const id = `exp-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+    switch (route.experienceType) {
+      case "zero-cart":
+        return this.createZeroCartExperience(id, prompt, intensity);
+      case "dream-trip":
+        return this.createDreamTripExperience(id, prompt, intensity);
+      case "five-minute-escape":
+        return this.createFiveMinuteEscapeExperience(id, prompt, intensity);
+      case "billion-dollar":
+        return this.createBillionDollarExperience(id, prompt, intensity);
+      case "quit-cart":
+        return this.createQuitCartExperience(id, prompt, intensity);
+    }
+  }
+
+  // Experience 1: ZeroCart
+  private createZeroCartExperience(id: string, prompt: string, intensity: number): Experience {
+    const p = prompt.toLowerCase();
+    let product = "Aurelius X9 Hypercar";
+    let fictionalPrice = 241300;
+    let subtitle = "Carbon-fiber monocoque with dual quantum turbos";
+    let image = "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1200&auto=format&fit=crop";
+
+    if (p.includes("watch") || p.includes("rolex") || p.includes("tourbillon")) {
+      product = "Chronos Stellaris Tourbillon";
+      fictionalPrice = 86500;
+      subtitle = "Hand-finished meteorite dial with gravitational balance";
+      image = "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1200&auto=format&fit=crop";
+    } else if (p.includes("espresso") || p.includes("coffee")) {
+      product = "La Marzocco Monolith Gold Espresso Rig";
+      fictionalPrice = 9800;
+      subtitle = "Dual saturated boilers with aerospace-grade brass groupheads";
+      image = "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1200&auto=format&fit=crop";
+    } else if (p.includes("telescope") || p.includes("space")) {
+      product = "Celestron Deep-Space Quantum Refractor";
+      fictionalPrice = 24900;
+      subtitle = "Cryo-cooled apochromatic sensor capable of resolving moons on Jupiter";
+      image = "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=1200&auto=format&fit=crop";
+    } else if (p.includes("jet") || p.includes("plane")) {
+      product = "Gulfstream G700 Mirage Edition";
+      fictionalPrice = 75000000;
+      subtitle = "Intercontinental private sanctuary with whispered aerodynamics";
+      image = "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1200&auto=format&fit=crop";
+    }
+
+    return {
+      id,
+      type: "zero-cart",
+      title: product,
+      subtitle,
+      theme: {
+        style: "luxury-obsidian",
+        intensity,
+        background: "obsidian",
+        accentColor: "#f59e0b",
+      },
+      stages: [
+        {
+          id: "stage-discover",
+          type: "scene",
+          title: "Engineered for Obscene Desire",
+          subtitle: product,
+          description: `You are looking at the pinnacle of human excess. Every contour has been honed to provoke envy, yet right now, it exists solely in your mind.`,
+          media: {
+            type: "image",
+            url: image,
+            alt: product,
+            caption: `${product} — Simulated Display Asset`,
+          },
+        },
+        {
+          id: "stage-customize",
+          type: "customize",
+          title: "Bespoke Specification",
+          description: "Select your custom finish, interior upholstery, and performance package. Cost: $0.",
+          options: [
+            { id: "opt-1", label: "Matte Obsidian & Liquid Gold Accents", price: 18500, highlight: "Curated" },
+            { id: "opt-2", label: "Midnight Carbon Weave", price: 24000 },
+            { id: "opt-3", label: "Titanium Sport Exhaust with Blue Flame Tune", price: 9200 },
+            { id: "opt-4", label: "Ceramic Composite Matrix Brakes", price: 14500 },
+            { id: "opt-5", label: "Laser-Etched Signature on Sill", price: 3500 },
+          ],
+        },
+        {
+          id: "stage-cart",
+          type: "cart",
+          title: "Imaginary Bag Summary",
+          description: "Review your configuration. Take a deep breath. Notice how clean your bank account remains.",
+          options: [
+            { id: "base", label: `Base ${product}`, price: fictionalPrice },
+            { id: "bespoke", label: "Bespoke Upgrades & Delivery Crating", price: 28000 },
+          ],
+        },
+        {
+          id: "stage-checkout",
+          type: "checkout",
+          title: "Commit to the Imaginary Purchase",
+          description: "Slide to finalize. No credit card requested. No invoice will be filed.",
+        },
+        {
+          id: "stage-reflection",
+          type: "reflection",
+          title: "Congratulations. It is yours.",
+          subtitle: `Your imaginary ${product} has been delivered to your mental garage.`,
+        },
+      ],
+      conclusion: {
+        headline: "Congratulations. Nothing happened.",
+        message: `Your imaginary ${product} is officially yours. You experienced the surge of acquisition without the weight of possession.`,
+        fictionalPrice,
+        avoidedAmount: fictionalPrice,
+        certificateTitle: `Certificate of Fictional Acquisition — ${product}`,
+        meTooPrompt: `Someone just didn't buy an imaginary ${product} for $${fictionalPrice.toLocaleString()}.`,
+        stats: [
+          { label: "Money spent", value: "$0" },
+          { label: "Garage space used", value: "0 sq ft" },
+          { label: "Insurance premium", value: "$0/mo" },
+          { label: "Regret tomorrow", value: "probably $0" },
+        ],
+      },
+    };
+  }
+
+  // Experience 2: DreamTrip
+  private createDreamTripExperience(id: string, prompt: string, intensity: number): Experience {
+    const p = prompt.toLowerCase();
+    let destination = "Switzerland (Alpine Sanctuary)";
+    let origin = "Washington (IAD)";
+    let hotel = "Alpine Cloud Resort & Thermal Spa";
+    let flightSuite = "Air France La Première Fictional Suite";
+    let image = "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=1200&auto=format&fit=crop";
+
+    if (p.includes("tokyo") || p.includes("japan") || p.includes("kyoto")) {
+      destination = "Kyoto & Tokyo, Japan";
+      origin = "San Francisco (SFO)";
+      hotel = "Hoshinoya Kyoto Cedar Villa";
+      flightSuite = "ANA The Room First Class Suite";
+      image = "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200&auto=format&fit=crop";
+    } else if (p.includes("amalfi") || p.includes("italy")) {
+      destination = "Amalfi Coast & Positano, Italy";
+      origin = "New York (JFK)";
+      hotel = "Le Sirenuse Cliffside Suite";
+      flightSuite = "Emirates A380 Shower Suite";
+      image = "https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=1200&auto=format&fit=crop";
+    }
+
+    return {
+      id,
+      type: "dream-trip",
+      title: `Expedition to ${destination}`,
+      subtitle: `${origin} → ${destination} &bull; 7-Day Curated Odyssey`,
+      theme: {
+        style: "editorial-alpine",
+        intensity,
+        background: "glacial",
+        accentColor: "#06b6d4",
+      },
+      stages: [
+        {
+          id: "stage-flight",
+          type: "choice",
+          title: "Flight Cabin Selection",
+          description: "Select your imaginary seat across the Atlantic.",
+          options: [
+            { id: "suite-1", label: flightSuite, description: "Krug 2008 vintage upon boarding, cashmere pyjamas", price: 14500, highlight: "Recommended" },
+            { id: "suite-2", label: "Private Supersonic Concorde II", description: "Mach 2.2 cruising altitude, arrive in 3.5 hours", price: 28000 },
+          ],
+          media: {
+            type: "image",
+            url: image,
+            alt: destination,
+          },
+        },
+        {
+          id: "stage-hotel",
+          type: "choice",
+          title: "Sanctuary Haven",
+          description: `Where will you wake up each morning in ${destination}?`,
+          options: [
+            { id: "hotel-1", label: hotel, description: "Private heated infinity pool facing the glacier, cedar sauna", price: 8400, highlight: "Top Rated" },
+            { id: "hotel-2", label: "Historic Manor Chalet", description: "Fireplace lit nightly, vintage wine cellar access", price: 6200 },
+          ],
+        },
+        {
+          id: "stage-itinerary",
+          type: "choice",
+          title: "Craft Your Itinerary",
+          description: "Choose your primary journey highlight.",
+          options: [
+            { id: "day-1", label: "Day 1: Lake Lucerne Private Steamer & Alpine Glacier Walk", price: 1200 },
+            { id: "day-2", label: "Day 2: Mountain Railway to Jungfraujoch & Fondue Tasting", price: 950 },
+            { id: "day-3", label: "Day 3: Sunset Paragliding Over Interlaken Meadows", price: 650 },
+          ],
+        },
+        {
+          id: "stage-checkout",
+          type: "checkout",
+          title: "BOOK DREAM TRIP — $0",
+          description: "Finalize your fictional booking. Generate your instant VIP boarding pass.",
+        },
+        {
+          id: "stage-reflection",
+          type: "reflection",
+          title: "Your Boarding Pass is Issued",
+          subtitle: "Ready for departure whenever your mind desires a quiet getaway.",
+        },
+      ],
+      conclusion: {
+        headline: "You have arrived without moving.",
+        message: `Your complete 7-day expedition to ${destination} is booked. Jetlag: zero hours. Packing anxiety: zero percent.`,
+        fictionalPrice: 28400,
+        avoidedAmount: 28400,
+        certificateTitle: `Official Fictional Boarding Pass — ${destination}`,
+        meTooPrompt: `Someone just booked an imaginary first-class trip to ${destination} for $0.`,
+        stats: [
+          { label: "Flight & Stay cost", value: "$0" },
+          { label: "Airport security wait", value: "0 mins" },
+          { label: "Luggage lost", value: "0 bags" },
+          { label: "Wanderlust fulfilled", value: "100%" },
+        ],
+      },
+      metadata: {
+        origin,
+        destination,
+        hotel,
+        flightSuite,
+      },
+    };
+  }
+
+  // Experience 3: Five-Minute Escape
+  private createFiveMinuteEscapeExperience(id: string, prompt: string, intensity: number): Experience {
+    const p = prompt.toLowerCase();
+    let place = "Kyoto Rain Café";
+    const drinkPrompt = "Choose your brew";
+    let drinkOptions = [
+      { id: "d-1", label: "Ceremonial Uji Matcha", description: "Whisked to emerald velvet foam", price: 0 },
+      { id: "d-2", label: "Dark Roast Sumiyaki Coffee", description: "Smoky, slow drip over charcoal", price: 0 },
+      { id: "d-3", label: "Roasted Hojicha Tea", description: "Warm, toasty aroma in handmade ceramic cup", price: 0 },
+    ];
+    const seatOptions = [
+      { id: "s-1", label: "Window Seat Against the Glass", description: "Watch raindrops race down the pane", price: 0 },
+      { id: "s-2", label: "Quiet Counter Corner", description: "Listen to the gentle hiss of boiling water", price: 0 },
+      { id: "s-3", label: "Velvet Booth in the Back", description: "Submerged in warm amber shadows", price: 0 },
+    ];
+    let image = "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=1200&auto=format&fit=crop";
+
+    if (p.includes("cabin") || p.includes("snow") || p.includes("mountain")) {
+      place = "Snowy Mountain Cabin";
+      image = "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop";
+      drinkOptions = [
+        { id: "d-1", label: "Spiced Hot Cider", description: "Cinnamon stick and star anise", price: 0 },
+        { id: "d-2", label: "Single Malt Peated Scotch", description: "Warm honey and gentle smoke", price: 0 },
+        { id: "d-3", label: "Chamomile & Pine Honey", description: "Calming herbal infusion", price: 0 },
+      ];
+    } else if (p.includes("beach") || p.includes("ocean") || p.includes("sea")) {
+      place = "Quiet Twilight Beach";
+      image = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop";
+    }
+
+    return {
+      id,
+      type: "five-minute-escape",
+      title: place,
+      subtitle: "A silent interlude away from the noise of the world",
+      theme: {
+        style: "zen-monochrome",
+        intensity,
+        background: "rain",
+        accentColor: "#10b981",
+      },
+      stages: [
+        {
+          id: "stage-seat",
+          type: "choice",
+          title: "Choose your seat",
+          description: "Take a breath. Settle into the room.",
+          options: seatOptions,
+          media: {
+            type: "image",
+            url: image,
+            alt: place,
+          },
+        },
+        {
+          id: "stage-drink",
+          type: "choice",
+          title: drinkPrompt,
+          description: "What shall we prepare while you sit here in silence?",
+          options: drinkOptions,
+        },
+        {
+          id: "stage-scene",
+          type: "scene",
+          title: "Five Quiet Minutes",
+          description: "Close your eyes or watch the ambient pulse. Let your shoulders drop.",
+        },
+        {
+          id: "stage-reflection",
+          type: "reflection",
+          title: "The interlude is complete.",
+          subtitle: "Your drink will never arrive. Your wallet saved $8.50. You gained five quiet minutes.",
+        },
+      ],
+      conclusion: {
+        headline: "You gained five quiet minutes.",
+        message: "Your drink will never arrive. Your wallet saved $8.50. The noise outside was paused.",
+        fictionalPrice: 8.5,
+        avoidedAmount: 8.5,
+        certificateTitle: `Five-Minute Escape Token — ${place}`,
+        meTooPrompt: `Someone in the world is taking a quiet five-minute pause right now.`,
+        stats: [
+          { label: "Quiet minutes gained", value: "5.0 mins" },
+          { label: "Wallet saved", value: "$8.50" },
+          { label: "Cortisol reduction", value: "-34%" },
+          { label: "Messages answered", value: "0" },
+        ],
+      },
+      metadata: {
+        place,
+      },
+    };
+  }
+
+  // Experience 4: Billion Dollar Mode
+  private createBillionDollarExperience(id: string, _prompt: string, intensity: number): Experience {
+    return {
+      id,
+      type: "billion-dollar",
+      title: "Billion Dollar Mode",
+      subtitle: "Starting Balance: $1,000,000,000. Spend it.",
+      theme: {
+        style: "gold-monolith",
+        intensity,
+        background: "midnight-gold",
+        accentColor: "#fbbf24",
+      },
+      stages: [
+        {
+          id: "stage-spree",
+          type: "choice",
+          title: "The Extravagance Catalog",
+          description: "Every item is ready for instant acquisition. Add as many as your billion can endure.",
+          options: [
+            { id: "b-1", label: "Sovereign Polynesian Atoll Island", description: "12 private white-sand beaches, airstrip, coral reef preserve", price: 145000000 },
+            { id: "b-2", label: "450-ft Mega Yacht with Submarine Garage", description: "Helipad, two swimming pools, 24-person submarine", price: 320000000 },
+            { id: "b-3", label: "Historic Premier League Football Club", description: "Stadium, academy, global broadcast rights", price: 420000000 },
+            { id: "b-4", label: "Private Lunar Colony Dome", description: "Pressurized geodesic biodome overlooking Earth", price: 250000000 },
+            { id: "b-5", label: "Manhattan Art-Deco Penthouse Skyscraper", description: "Top 4 floors overlooking Central Park with cantilevered pool", price: 180000000 },
+            { id: "b-6", label: "Daft Punk Private Lawn Reunion", description: "One-night private pyramid concert in your backyard", price: 35000000 },
+            { id: "b-7", label: "Fleet of 10 Bespoke Hypercars", description: "Carbon-fiber bespoke fleet with personalized garage", price: 40000000 },
+          ],
+        },
+        {
+          id: "stage-checkout",
+          type: "checkout",
+          title: "Authorize Imaginary Wire Transfer",
+          description: "Confirm transaction from your fictional sovereign trust.",
+        },
+        {
+          id: "stage-reflection",
+          type: "reflection",
+          title: "Transfer Finalized",
+          subtitle: "The balance has vanished. The bank account remains completely intact.",
+        },
+      ],
+      conclusion: {
+        headline: "You spent the billion.",
+        message: "You experienced the dizzying sensation of unlimited capital without a single audit.",
+        fictionalPrice: 843220000,
+        avoidedAmount: 843220000,
+        certificateTitle: "Billionaire Spending Certificate",
+        meTooPrompt: "Someone just spent an imaginary $843 million in two minutes.",
+        stats: [
+          { label: "Imaginary amount spent", value: "$843,220,000" },
+          { label: "Actual financial damage", value: "$0.00" },
+          { label: "IRS inquiry probability", value: "0.0%" },
+          { label: "Satisfaction quotient", value: "Maximal" },
+        ],
+      },
+    };
+  }
+
+  // Experience 5: QuitCart
+  private createQuitCartExperience(id: string, prompt: string, intensity: number): Experience {
+    let itemName = "Flagship Titanium Smartphone";
+    let basePrice = 1499;
+
+    // Detect price if user mentioned a dollar amount
+    const match = prompt.match(/\$?([0-9,]+)/);
+    if (match) {
+      const parsed = parseFloat(match[1].replace(/,/g, ""));
+      if (!isNaN(parsed) && parsed > 0) {
+        basePrice = parsed;
+      }
+    }
+
+    if (prompt.toLowerCase().includes("espresso") || prompt.toLowerCase().includes("coffee")) {
+      itemName = "Barista Pro Dual-Boiler Espresso Machine";
+      if (!match) basePrice = 2199;
+    } else if (prompt.toLowerCase().includes("laptop") || prompt.toLowerCase().includes("macbook")) {
+      itemName = "Pro Studio Laptop (Max Spec)";
+      if (!match) basePrice = 3499;
+    } else if (prompt.toLowerCase().includes("watch") || prompt.toLowerCase().includes("shoes")) {
+      itemName = "Designer Luxury Accessory";
+      if (!match) basePrice = 850;
+    }
+
+    return {
+      id,
+      type: "quit-cart",
+      title: `Impulse Intercept: ${itemName}`,
+      subtitle: `Retail price: $${basePrice.toLocaleString()} &bull; Walk through the register, then walk away clean.`,
+      theme: {
+        style: "minimal-editorial",
+        intensity,
+        background: "charcoal",
+        accentColor: "#f43f5e",
+      },
+      stages: [
+        {
+          id: "stage-config",
+          type: "customize",
+          title: `Configure Your ${itemName}`,
+          description: "Select finish and storage tier to feel the full buying euphoria.",
+          options: [
+            { id: "c-1", label: "1TB Ultra Capacity Tier", price: 300, highlight: "Most Popular" },
+            { id: "c-2", label: "Matte Cosmic Black Anodized Finish", price: 0 },
+            { id: "c-3", label: "3-Year Accidental Damage Protection", price: 279 },
+            { id: "c-4", label: "Expedited Next-Morning Drone Delivery", price: 45 },
+          ],
+        },
+        {
+          id: "stage-checkout",
+          type: "checkout",
+          title: "COMMIT TO THE PURCHASE",
+          description: "Click to authorize payment. Watch what happens.",
+        },
+        {
+          id: "stage-reflection",
+          type: "reflection",
+          title: "ORDER CANCELED SUCCESSFULLY",
+          subtitle: `You kept: $${basePrice.toLocaleString()}. Actual purchase: $0.`,
+        },
+      ],
+      conclusion: {
+        headline: "ORDER CANCELED SUCCESSFULLY",
+        message: `You walked right up to the edge of the checkout button and stepped back. You kept your $${basePrice.toLocaleString()}.`,
+        fictionalPrice: basePrice,
+        avoidedAmount: basePrice,
+        certificateTitle: `Temptation Intercept Certificate — ${itemName}`,
+        meTooPrompt: `Someone just walked away from a $${basePrice.toLocaleString()} checkout with their savings intact.`,
+        stats: [
+          { label: "You kept", value: `$${basePrice.toLocaleString()}` },
+          { label: "Actual purchase", value: "$0.00" },
+          { label: "Buyer remorse tomorrow", value: "0%" },
+          { label: "Mental clarity gained", value: "+100%" },
+        ],
+      },
+      metadata: {
+        itemName,
+        basePrice,
+      },
+    };
+  }
+}

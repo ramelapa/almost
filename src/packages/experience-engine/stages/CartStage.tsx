@@ -15,6 +15,9 @@ export function CartStage({
     { id: "base", label: experience.title, price: experience.conclusion.fictionalPrice || 240000 },
   ];
 
+  const baseItem = options.find((o) => o.id === "base") || options[0];
+  const upgradeItems = options.filter((o) => o.id !== "base");
+  const upgradesSum = upgradeItems.reduce((sum, o) => sum + o.price, 0);
   const imaginaryTotal = options.reduce((sum, o) => sum + o.price, 0);
 
   return (
@@ -44,7 +47,9 @@ export function CartStage({
             <div key={item.id} className="py-3.5 flex items-center justify-between">
               <div>
                 <span className="text-sm font-semibold text-white block">{item.label}</span>
-                <span className="text-[11px] font-mono text-zinc-500">Speculative Line Item</span>
+                <span className="text-[11px] font-mono text-zinc-500">
+                  {item.id === "base" ? "Base Fictional Asset" : "Selected Bespoke Upgrade"}
+                </span>
               </div>
               <span className="text-sm font-mono text-zinc-300">
                 ${item.price.toLocaleString()}
@@ -56,8 +61,18 @@ export function CartStage({
         {/* Totals */}
         <div className="border-t border-white/10 pt-4 space-y-2 font-mono">
           <div className="flex justify-between text-xs text-zinc-400">
+            <span>Base Fictional Value</span>
+            <span>${baseItem ? baseItem.price.toLocaleString() : "0"}</span>
+          </div>
+          {upgradeItems.length > 0 && (
+            <div className="flex justify-between text-xs text-amber-300">
+              <span>Selected Upgrades ({upgradeItems.length})</span>
+              <span>+${upgradesSum.toLocaleString()}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-xs text-zinc-300 pt-1 border-t border-white/5">
             <span>Fictional Retail Sum</span>
-            <span>${imaginaryTotal.toLocaleString()}</span>
+            <span className="font-bold text-white">${imaginaryTotal.toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-xs text-zinc-400">
             <span>Sales Tax & Tariffs</span>

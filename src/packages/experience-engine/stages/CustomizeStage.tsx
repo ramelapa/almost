@@ -8,15 +8,24 @@ import { TactileButton } from "../../ui";
 
 export function CustomizeStage({
   stage,
+  experience,
   onNext,
   onSelectOption,
   selectedOptionIds,
 }: StageComponentProps) {
   const options = stage.options || [];
 
+  const basePrice =
+    experience?.metadata?.basePrice ??
+    experience?.stages?.find((s) => s.type === "cart")?.options?.[0]?.price ??
+    experience?.conclusion?.fictionalPrice ??
+    0;
+
   const totalCalculated = options
     .filter((o) => selectedOptionIds.includes(o.id))
     .reduce((sum, o) => sum + o.price, 0);
+
+  const fictionalTotal = (basePrice > 0 ? basePrice : 0) + totalCalculated;
 
   return (
     <motion.div
@@ -36,16 +45,34 @@ export function CustomizeStage({
       </div>
 
       {/* Selected ticker */}
-      <div className="flex items-center gap-6 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 mb-8 backdrop-blur-md">
+      <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 mb-8 backdrop-blur-md text-center">
+        {basePrice > 0 && (
+          <>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Base Fictional Value</span>
+              <span className="text-sm font-mono font-bold text-white">
+                ${basePrice.toLocaleString()}
+              </span>
+            </div>
+            <div className="h-8 w-px bg-white/10 hidden sm:block" />
+          </>
+        )}
         <div className="flex flex-col">
           <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Selected Upgrades</span>
           <span className="text-sm font-semibold text-white">{selectedOptionIds.length} items</span>
         </div>
         <div className="h-8 w-px bg-white/10" />
         <div className="flex flex-col">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Total Fantasy Additions</span>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Upgrades Subtotal</span>
           <span className="text-sm font-mono font-bold text-amber-300">
-            ${totalCalculated.toLocaleString()}
+            +${totalCalculated.toLocaleString()}
+          </span>
+        </div>
+        <div className="h-8 w-px bg-white/10" />
+        <div className="flex flex-col">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Customization Total</span>
+          <span className="text-sm font-mono font-bold text-amber-300">
+            ${fictionalTotal.toLocaleString()}
           </span>
         </div>
         <div className="h-8 w-px bg-white/10" />
@@ -56,17 +83,26 @@ export function CustomizeStage({
       </div>
 
       {/* Options List */}
-      <div className="flex flex-col gap-3 w-full max-w-2xl mb-8">
+      <div className="flex flex-col gap-3 w-full max-w-2xl mb-8" role="group" aria-label="Available upgrades">
         {options.map((option) => {
           const isSelected = selectedOptionIds.includes(option.id);
 
           return (
-            <motion.div
+            <motion.button
               key={option.id}
+              type="button"
+              role="checkbox"
+              aria-checked={isSelected}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={() => onSelectOption(option.id, true)}
-              className={`flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all duration-200 border ${
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectOption(option.id, true);
+                }
+              }}
+              className={`w-full text-left flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all duration-200 border focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                 isSelected
                   ? "bg-zinc-900/90 border-amber-400/80 shadow-[0_0_20px_rgba(245,158,11,0.15)]"
                   : "bg-zinc-950/50 border-white/10 hover:border-white/20 hover:bg-zinc-900/40"
@@ -79,6 +115,7 @@ export function CustomizeStage({
                       ? "bg-amber-400 border-amber-400 text-black"
                       : "border-white/20 bg-white/5 text-zinc-500"
                   }`}
+                  aria-hidden="true"
                 >
                   {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Plus className="w-3 h-3" />}
                 </div>
@@ -104,7 +141,7 @@ export function CustomizeStage({
                 </span>
                 <span className="block text-[10px] font-mono text-emerald-400">($0 real)</span>
               </div>
-            </motion.div>
+            </motion.button>
           );
         })}
       </div>

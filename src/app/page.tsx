@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useSyncExternalStore } from "r
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowRight, ShieldCheck, RefreshCw } from "lucide-react";
 import { Navbar, DopamineDial, TactileButton } from "@/packages/ui";
-import { Experience } from "@/packages/schemas";
+import { Experience, MuseumItem } from "@/packages/schemas";
 import { EngineRunner } from "@/packages/experience-engine";
 import {
   subscribeMuseum,
@@ -106,44 +106,65 @@ export default function HomePage() {
     }
   }, [handleSurpriseMe]);
 
-  const handleAddToMuseum = () => {
-    if (!activeExperience) return;
-    const newItem = {
-      id: `museum_${Date.now()}`,
-      sessionId: getSessionId(),
-      experienceId: activeExperience.id,
-      experienceType: activeExperience.type,
-      title: activeExperience.title,
-      subtitle: activeExperience.subtitle,
-      fictionalPrice: activeExperience.conclusion.fictionalPrice,
-      avoidedAmount: activeExperience.conclusion.avoidedAmount,
-      imageUrl: activeExperience.stages[0]?.media?.url,
-      createdAt: new Date().toISOString(),
-      reflectionQuote: activeExperience.conclusion.message,
-      stats: activeExperience.conclusion.stats.map((s) => ({ label: s.label, value: s.value })),
-      tags: [activeExperience.type],
-    };
+  const handleAddToMuseum = useCallback(
+    (customItem?: Partial<MuseumItem>) => {
+      if (!activeExperience) return;
+      const fictionalPrice =
+        customItem?.fictionalPrice ?? activeExperience.conclusion.fictionalPrice;
+      const avoidedAmount =
+        customItem?.avoidedAmount ?? activeExperience.conclusion.avoidedAmount;
+      const title = customItem?.title ?? activeExperience.title;
+      const subtitle = customItem?.subtitle ?? activeExperience.subtitle;
+      const imageUrl =
+        customItem?.imageUrl ??
+        activeExperience.metadata?.imageUrl ??
+        activeExperience.stages[0]?.media?.url;
+      const reflectionQuote =
+        customItem?.reflectionQuote ?? activeExperience.conclusion.message;
+      const stats =
+        customItem?.stats ??
+        activeExperience.conclusion.stats.map((s) => ({ label: s.label, value: s.value }));
 
-    addLocalMuseumItem(newItem);
-
-    // Sync with server API
-    fetch("/api/museum", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newItem),
-    }).catch(() => {});
-
-    // Notify feed anonymously
-    fetch("/api/feed", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: activeExperience.conclusion.meTooPrompt || `experienced ${activeExperience.title} for $0.`,
+      const newItem: MuseumItem = {
+        id: `museum_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        sessionId: getSessionId(),
+        experienceId: activeExperience.id,
         experienceType: activeExperience.type,
-        avoidedAmount: activeExperience.conclusion.avoidedAmount,
-      }),
-    }).catch(() => {});
-  };
+        title,
+        subtitle,
+        fictionalPrice,
+        avoidedAmount,
+        imageUrl,
+        createdAt: new Date().toISOString(),
+        reflectionQuote,
+        stats,
+        tags: [activeExperience.type],
+      };
+
+      addLocalMuseumItem(newItem);
+
+      // Sync with server API
+      fetch("/api/museum", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newItem),
+      }).catch(() => {});
+
+      // Notify feed anonymously
+      fetch("/api/feed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message:
+            activeExperience.conclusion.meTooPrompt ||
+            `experienced ${title} for $0.`,
+          experienceType: activeExperience.type,
+          avoidedAmount,
+        }),
+      }).catch(() => {});
+    },
+    [activeExperience]
+  );
 
   return (
     <main className="min-h-screen flex flex-col justify-between pt-20 pb-12 px-4 relative">
@@ -209,15 +230,21 @@ export default function HomePage() {
 
             {/* Elegant Natural Language Input Box */}
             <div className="w-full max-w-2xl relative mb-8 group">
+              <label htmlFor="main-craving-prompt" className="sr-only">
+                What are you craving? Describe the luxury item, trip, or escape you want to simulate
+              </label>
               <div className="relative flex items-center bg-zinc-950/80 rounded-3xl border border-white/15 p-2 shadow-2xl backdrop-blur-2xl focus-within:border-amber-400/60 transition-all">
                 <input
+                  id="main-craving-prompt"
+                  name="cravingPrompt"
                   type="text"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleStartExperience();
                   }}
-                  placeholder="Tell me anything..."
+                  placeholder="Tell me anything (e.g. supercar, telescope, Swiss Alps, billion dollars)..."
+                  aria-label="What are you craving? Describe what you want to experience or simulate"
                   className="w-full bg-transparent px-6 py-4 text-base md:text-lg text-white placeholder:text-zinc-500 focus:outline-none font-sans"
                 />
 

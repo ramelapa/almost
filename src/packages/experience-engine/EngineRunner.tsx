@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Experience } from "../schemas";
+import { Experience, MuseumItem } from "../schemas";
 import { ZeroCartRenderer } from "./renderers/ZeroCartRenderer";
 import { DreamTripRenderer } from "./renderers/DreamTripRenderer";
 import { FiveMinuteEscapeRenderer } from "./renderers/FiveMinuteEscapeRenderer";
@@ -11,7 +11,7 @@ import { QuitCartRenderer } from "./renderers/QuitCartRenderer";
 export interface EngineRunnerProps {
   experience: Experience;
   onComplete?: () => void;
-  onAddToMuseum?: () => void;
+  onAddToMuseum?: (item?: Partial<MuseumItem>) => void;
 }
 
 export function EngineRunner({

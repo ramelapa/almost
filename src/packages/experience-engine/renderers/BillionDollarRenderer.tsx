@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Experience } from "../../schemas";
+import { Experience, MuseumItem } from "../../schemas";
 import { CheckoutStage } from "../stages/CheckoutStage";
 import { ReflectionStage } from "../stages/ReflectionStage";
 import { BillionaireReceipt } from "../../ui/BillionaireReceipt";
@@ -13,7 +13,7 @@ import { Plus, Minus, ArrowRight } from "lucide-react";
 interface BillionDollarRendererProps {
   experience: Experience;
   onComplete?: () => void;
-  onAddToMuseum?: () => void;
+  onAddToMuseum?: (customItem?: Partial<MuseumItem>) => void;
 }
 
 const defaultBillionCatalog = [
@@ -33,11 +33,8 @@ export function BillionDollarRenderer({
   onAddToMuseum,
 }: BillionDollarRendererProps) {
   const STARTING_BALANCE = 1000000000;
-  const [quantities, setQuantities] = useState<Record<string, number>>({
-    "b-1": 1,
-    "b-2": 1,
-    "b-6": 1,
-  });
+  // Start every new session with $0 spent, 0 quantities, $1B balance
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [currentStageIdx, setCurrentStageIdx] = useState(0);
   const [isShareOpen, setIsShareOpen] = useState(false);
 
@@ -56,11 +53,26 @@ export function BillionDollarRenderer({
   const stage = experience.stages[currentStageIdx] || experience.stages[0];
 
   const handleUpdateQuantity = (id: string, delta: number) => {
+    const item = defaultBillionCatalog.find((i) => i.id === id);
+    if (!item) return;
+    // Overspending prevention: do not allow purchases exceeding remaining fictional balance
+    if (delta > 0 && item.price > remaining) {
+      return;
+    }
     setQuantities((prev) => {
       const current = prev[id] || 0;
       const next = Math.max(0, current + delta);
+      if (next === 0) {
+        const nextState = { ...prev };
+        delete nextState[id];
+        return nextState;
+      }
       return { ...prev, [id]: next };
     });
+  };
+
+  const handleReset = () => {
+    setQuantities({});
   };
 
   const handleNext = () => {
@@ -160,14 +172,17 @@ export function BillionDollarRenderer({
                           type="button"
                           onClick={() => handleUpdateQuantity(item.id, -1)}
                           disabled={qty === 0}
-                          className="p-1 rounded-lg bg-zinc-900 text-zinc-300 hover:text-white disabled:opacity-30 border border-white/5 cursor-pointer"
+                          aria-label={`Remove one ${item.label}`}
+                          className="p-1 rounded-lg bg-zinc-900 text-zinc-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed border border-white/5 cursor-pointer"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => handleUpdateQuantity(item.id, 1)}
-                          className="p-1 rounded-lg bg-amber-400 text-zinc-950 font-bold hover:bg-amber-300 cursor-pointer"
+                          disabled={remaining < item.price}
+                          aria-label={`Add one ${item.label}`}
+                          className="p-1 rounded-lg bg-amber-400 text-zinc-950 font-bold hover:bg-amber-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -178,16 +193,29 @@ export function BillionDollarRenderer({
               })}
             </div>
 
-            <TactileButton
-              variant="gold"
-              size="lg"
-              onClick={handleNext}
-              disabled={spentAmount === 0}
-              className="group"
-            >
-              <span>Authorize Fictional Wire Transfer</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </TactileButton>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              {spentAmount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="px-5 py-3 text-xs font-mono rounded-2xl bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 border border-white/10 transition-colors"
+                  aria-label="Reset spending spree"
+                >
+                  Reset Selections ($0 Spent)
+                </button>
+              )}
+
+              <TactileButton
+                variant="gold"
+                size="lg"
+                onClick={handleNext}
+                disabled={spentAmount === 0}
+                className="group"
+              >
+                <span>Authorize Fictional Wire Transfer</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </TactileButton>
+            </div>
           </motion.div>
         )}
 
@@ -239,7 +267,16 @@ export function BillionDollarRenderer({
               onSelectOption={() => {}}
               selectedOptionIds={[]}
               isLastStage={true}
-              onAddToMuseum={onAddToMuseum}
+              onAddToMuseum={() => {
+                if (onAddToMuseum) {
+                  onAddToMuseum({
+                    title: "Billion Dollar Spending Spree",
+                    fictionalPrice: spentAmount,
+                    avoidedAmount: spentAmount,
+                    reflectionQuote: `Expended simulated $${spentAmount.toLocaleString()} across ${purchasedItems.length} sovereign assets. Real cost: $0.00.`,
+                  });
+                }
+              }}
               onShare={() => setIsShareOpen(true)}
             />
           </div>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Experience } from "../../schemas";
+import { Experience, MuseumItem } from "../../schemas";
 import { CustomizeStage } from "../stages/CustomizeStage";
 import { CheckoutStage } from "../stages/CheckoutStage";
 import { InvestmentGrowthCard } from "../../ui/InvestmentGrowthCard";
@@ -15,7 +15,7 @@ import Link from "next/link";
 interface QuitCartRendererProps {
   experience: Experience;
   onComplete?: () => void;
-  onAddToMuseum?: () => void;
+  onAddToMuseum?: (customItem?: Partial<MuseumItem>) => void;
 }
 
 export function QuitCartRenderer({
@@ -24,14 +24,24 @@ export function QuitCartRenderer({
   onAddToMuseum,
 }: QuitCartRendererProps) {
   const [currentStageIdx, setCurrentStageIdx] = useState(0);
+  // Start with no paid-looking upgrades selected; storage, warranty, delivery must be explicit choices
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({
-    "stage-config": ["c-1", "c-3"],
+    "stage-config": [],
   });
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [hasAddedToMuseum, setHasAddedToMuseum] = useState(false);
 
   const stage = experience.stages[currentStageIdx] || experience.stages[0];
-  const basePrice = experience.metadata?.basePrice || experience.conclusion.avoidedAmount || 1499;
+  const hasUserStatedPrice = Boolean(experience.metadata?.hasUserStatedPrice);
+  const userStatedPrice = experience.metadata?.userStatedPrice;
+  const basePrice = userStatedPrice || experience.metadata?.basePrice || 1499;
+
+  const configStage = experience.stages.find((s) => s.id === "stage-config") || experience.stages[0];
+  const selectedUpgrades = (configStage.options || []).filter((opt) =>
+    (selectedOptions["stage-config"] || []).includes(opt.id)
+  );
+  const upgradesTotal = selectedUpgrades.reduce((sum, opt) => sum + (opt.price || 0), 0);
+  const fictionalCartTotal = basePrice + upgradesTotal;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -82,7 +92,16 @@ export function QuitCartRenderer({
 
   const handleAddToMuseumClick = () => {
     setHasAddedToMuseum(true);
-    if (onAddToMuseum) onAddToMuseum();
+    if (onAddToMuseum) {
+      onAddToMuseum({
+        title: `Impulse Intercept: ${experience.metadata?.itemName || experience.title}`,
+        fictionalPrice: fictionalCartTotal,
+        avoidedAmount: hasUserStatedPrice ? userStatedPrice : fictionalCartTotal,
+        reflectionQuote: hasUserStatedPrice
+          ? `Walked away from simulated ${experience.metadata?.itemName}. Kept real-world $${userStatedPrice.toLocaleString()}.`
+          : `Walked away from simulated ${experience.metadata?.itemName}. Simulated non-expenditure: $${fictionalCartTotal.toLocaleString()}.`,
+      });
+    }
   };
 
   const currentSelection = selectedOptions[stage.id] || [];
@@ -138,14 +157,26 @@ export function QuitCartRenderer({
               </h1>
 
               <p className="text-zinc-300 text-sm md:text-base max-w-xl mx-auto mb-6 font-light leading-relaxed">
-                You walked right to the edge of the checkout button and stepped back. You kept your money while experiencing the full buying ritual.
+                {hasUserStatedPrice
+                  ? `You walked right to the edge of the checkout button and stepped back. You kept your $${userStatedPrice.toLocaleString()} while experiencing the full buying ritual.`
+                  : "You walked right to the edge of the checkout button and stepped back. You satisfied the buying ritual with $0 spent."}
               </p>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto font-mono text-center">
                 <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-                  <span className="text-[10px] text-zinc-500 uppercase block">You Kept</span>
+                  <span className="text-[10px] text-zinc-500 uppercase block">
+                    {hasUserStatedPrice ? "You Kept" : "Simulated Non-Expenditure"}
+                  </span>
                   <span className="text-xl font-bold text-emerald-400">
-                    ${basePrice.toLocaleString()}
+                    ${(hasUserStatedPrice ? userStatedPrice : fictionalCartTotal).toLocaleString()}
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                  <span className="text-[10px] text-zinc-500 uppercase block">
+                    {hasUserStatedPrice ? "Fictional Cart" : "Illustrative Reference"}
+                  </span>
+                  <span className="text-xl font-bold text-cyan-400">
+                    ${(hasUserStatedPrice ? fictionalCartTotal : basePrice).toLocaleString()}
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-white/5 border border-white/5">
@@ -156,15 +187,14 @@ export function QuitCartRenderer({
                   <span className="text-[10px] text-zinc-500 uppercase block">Remorse Tomorrow</span>
                   <span className="text-xl font-bold text-amber-300">0%</span>
                 </div>
-                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-                  <span className="text-[10px] text-zinc-500 uppercase block">Fictional Cart</span>
-                  <span className="text-xl font-bold text-cyan-400">Voided</span>
-                </div>
               </div>
             </div>
 
-            {/* Educational Compounding Visualization */}
-            <InvestmentGrowthCard amountSaved={basePrice} assumedAnnualRate={0.07} />
+            {/* Educational Compounding Visualization with 7% hypothetical disclaimer */}
+            <InvestmentGrowthCard
+              amountSaved={hasUserStatedPrice ? userStatedPrice : fictionalCartTotal}
+              assumedAnnualRate={0.07}
+            />
 
             {/* Single Action Row */}
             <div className="flex flex-wrap items-center justify-center gap-4 w-full mt-4">
@@ -204,10 +234,14 @@ export function QuitCartRenderer({
       <ShareCardModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        experienceTitle={`Avoided $${basePrice.toLocaleString()} purchase on ${experience.metadata?.itemName || experience.title}`}
+        experienceTitle={
+          hasUserStatedPrice
+            ? `Avoided spending $${userStatedPrice.toLocaleString()} on ${experience.metadata?.itemName || experience.title}`
+            : `Intercepted cart for ${experience.metadata?.itemName || experience.title}`
+        }
         experienceType="QuitCart"
-        fictionalPrice={basePrice}
-        avoidedPrice={basePrice}
+        fictionalPrice={fictionalCartTotal}
+        avoidedPrice={hasUserStatedPrice ? userStatedPrice : fictionalCartTotal}
       />
     </div>
   );

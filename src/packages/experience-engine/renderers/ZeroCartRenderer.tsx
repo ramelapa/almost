@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
-import { Experience } from "../../schemas";
+import { Experience, MuseumItem } from "../../schemas";
 import { SceneStage } from "../stages/SceneStage";
 import { CustomizeStage } from "../stages/CustomizeStage";
 import { CartStage } from "../stages/CartStage";
@@ -13,7 +13,7 @@ import { ShareCardModal } from "../../ui/ShareCardModal";
 interface ZeroCartRendererProps {
   experience: Experience;
   onComplete?: () => void;
-  onAddToMuseum?: () => void;
+  onAddToMuseum?: (item?: Partial<MuseumItem>) => void;
 }
 
 export function ZeroCartRenderer({
@@ -23,7 +23,7 @@ export function ZeroCartRenderer({
 }: ZeroCartRendererProps) {
   const [currentStageIdx, setCurrentStageIdx] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({
-    "stage-customize": ["opt-1"],
+    "stage-customize": [],
   });
   const [isShareOpen, setIsShareOpen] = useState(false);
 
@@ -32,6 +32,20 @@ export function ZeroCartRenderer({
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [currentStageIdx]);
+
+  const basePrice =
+    experience.metadata?.basePrice ?? experience.conclusion.fictionalPrice ?? 241300;
+  const baseProduct =
+    experience.metadata?.baseProduct ??
+    experience.title.replace(/\s*\(Fictional Possession\)/, "");
+  const customizeStage = experience.stages.find((s) => s.type === "customize");
+  const availableUpgrades = customizeStage?.options || [];
+  const selectedUpgradeIds = selectedOptions["stage-customize"] || [];
+  const selectedUpgrades = availableUpgrades.filter((u) =>
+    selectedUpgradeIds.includes(u.id)
+  );
+  const upgradesTotal = selectedUpgrades.reduce((sum, u) => sum + u.price, 0);
+  const fictionalTotal = basePrice + upgradesTotal;
 
   const stage = experience.stages[currentStageIdx] || experience.stages[0];
 
@@ -63,6 +77,57 @@ export function ZeroCartRenderer({
 
   const currentSelection = selectedOptions[stage.id] || [];
 
+  // Authoritative dynamic cart options
+  const dynamicCartOptions = [
+    {
+      id: "base",
+      label: `Base ${baseProduct}`,
+      price: basePrice,
+      description: "Base asset specification",
+    },
+    ...selectedUpgrades.map((u) => ({
+      id: u.id,
+      label: u.label,
+      price: u.price,
+      description: "Selected bespoke upgrade",
+    })),
+  ];
+
+  // Authoritative conclusion
+  const authoritativeConclusion = {
+    ...experience.conclusion,
+    fictionalPrice: fictionalTotal,
+    avoidedAmount: fictionalTotal,
+    stats: [
+      { label: "Base fictional price", value: `$${basePrice.toLocaleString()}` },
+      {
+        label: "Selected upgrades",
+        value:
+          selectedUpgrades.length > 0
+            ? `$${upgradesTotal.toLocaleString()} (${selectedUpgrades.length})`
+            : "$0 (Standard)",
+      },
+      { label: "Total fictional value", value: `$${fictionalTotal.toLocaleString()}` },
+      { label: "Real money spent", value: "$0.00" },
+    ],
+  };
+
+  const authoritativeExperience: Experience = {
+    ...experience,
+    conclusion: authoritativeConclusion,
+  };
+
+  const handleAddToMuseumWithAuthoritativeState = () => {
+    if (onAddToMuseum) {
+      onAddToMuseum({
+        fictionalPrice: fictionalTotal,
+        avoidedAmount: fictionalTotal,
+        reflectionQuote: `Fictional total: $${fictionalTotal.toLocaleString()} ($0 spent in real life).`,
+        stats: authoritativeConclusion.stats,
+      });
+    }
+  };
+
   return (
     <div className="w-full flex-1 flex flex-col justify-start pt-2 md:pt-4 pb-16 relative z-10">
       <AnimatePresence mode="wait">
@@ -70,7 +135,7 @@ export function ZeroCartRenderer({
           <SceneStage
             key={stage.id}
             stage={stage}
-            experience={experience}
+            experience={authoritativeExperience}
             onNext={handleNext}
             onSelectOption={handleSelectOption}
             selectedOptionIds={currentSelection}
@@ -82,7 +147,7 @@ export function ZeroCartRenderer({
           <CustomizeStage
             key={stage.id}
             stage={stage}
-            experience={experience}
+            experience={authoritativeExperience}
             onNext={handleNext}
             onSelectOption={handleSelectOption}
             selectedOptionIds={currentSelection}
@@ -93,8 +158,8 @@ export function ZeroCartRenderer({
         {stage.type === "cart" && (
           <CartStage
             key={stage.id}
-            stage={stage}
-            experience={experience}
+            stage={{ ...stage, options: dynamicCartOptions }}
+            experience={authoritativeExperience}
             onNext={handleNext}
             onSelectOption={handleSelectOption}
             selectedOptionIds={currentSelection}
@@ -106,7 +171,7 @@ export function ZeroCartRenderer({
           <CheckoutStage
             key={stage.id}
             stage={stage}
-            experience={experience}
+            experience={authoritativeExperience}
             onNext={handleNext}
             onSelectOption={handleSelectOption}
             selectedOptionIds={currentSelection}
@@ -118,12 +183,12 @@ export function ZeroCartRenderer({
           <ReflectionStage
             key={stage.id}
             stage={stage}
-            experience={experience}
+            experience={authoritativeExperience}
             onNext={handleNext}
             onSelectOption={handleSelectOption}
             selectedOptionIds={currentSelection}
             isLastStage={true}
-            onAddToMuseum={onAddToMuseum}
+            onAddToMuseum={handleAddToMuseumWithAuthoritativeState}
             onShare={() => setIsShareOpen(true)}
           />
         )}
@@ -132,11 +197,11 @@ export function ZeroCartRenderer({
       <ShareCardModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        experienceTitle={experience.title}
+        experienceTitle={authoritativeExperience.title}
         experienceType="ZeroCart"
-        fictionalPrice={experience.conclusion.fictionalPrice}
-        avoidedPrice={experience.conclusion.avoidedAmount}
-        imageUrl={experience.stages[0]?.media?.url}
+        fictionalPrice={fictionalTotal}
+        avoidedPrice={fictionalTotal}
+        imageUrl={experience.metadata?.imageUrl || experience.stages[0]?.media?.url}
       />
     </div>
   );

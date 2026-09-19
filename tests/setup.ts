@@ -15,5 +15,27 @@ Object.defineProperty(window, "matchMedia", {
   }),
 });
 
-// Mock HTMLCanvasElement.getContext
-HTMLCanvasElement.prototype.getContext = (() => null) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+// Mock HTMLCanvasElement.getContext for canvas-confetti
+HTMLCanvasElement.prototype.getContext = (() => ({
+  fillRect: () => {},
+  clearRect: () => {},
+  getImageData: () => ({ data: [] }),
+  putImageData: () => {},
+  createImageData: () => [],
+  setTransform: () => {},
+  drawImage: () => {},
+  save: () => {},
+  fillText: () => {},
+  restore: () => {},
+  beginPath: () => {},
+  moveTo: () => {},
+  lineTo: () => {},
+  closePath: () => {},
+  stroke: () => {},
+  translate: () => {},
+  scale: () => {},
+  rotate: () => {},
+  arc: () => {},
+  fill: () => {},
+  resetTransform: () => {},
+})) as unknown as typeof HTMLCanvasElement.prototype.getContext;

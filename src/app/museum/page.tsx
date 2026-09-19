@@ -195,7 +195,11 @@ export default function MuseumPage() {
                     )}
                     {item.reflectionQuote && (
                       <blockquote className="text-xs italic text-zinc-300 pl-3 border-l-2 border-amber-400/60 my-3 font-serif">
-                        &ldquo;{item.reflectionQuote}&rdquo;
+                        &ldquo;
+                        {item.reflectionQuote
+                          .replace(/wallet saved \$([0-9.,]+)/gi, "wallet kept \$$1")
+                          .replace(/saved \$([0-9.,]+)/gi, "simulated \$$1 non-expenditure")}
+                        &rdquo;
                       </blockquote>
                     )}
                   </div>

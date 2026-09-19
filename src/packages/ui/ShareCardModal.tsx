@@ -32,9 +32,35 @@ export function ShareCardModal({
   imageUrl,
 }: ShareCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
   const [aspect, setAspect] = useState<"square" | "landscape" | "story">("square");
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Focus management and Escape key handling
+  React.useEffect(() => {
+    if (isOpen) {
+      previousActiveElement.current = (document.activeElement as HTMLElement) || null;
+      // Focus the close button when dialog opens
+      const timer = setTimeout(() => {
+        closeBtnRef.current?.focus();
+      }, 50);
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          onClose();
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener("keydown", handleKeyDown);
+        previousActiveElement.current?.focus?.();
+      };
+    }
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -63,7 +89,12 @@ export function ShareCardModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-dialog-title"
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -74,12 +105,16 @@ export function ShareCardModal({
           <div className="flex items-center justify-between pb-4 border-b border-white/10">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              <h3 className="font-serif font-bold text-lg text-white">Share Your Non-Purchase</h3>
+              <h3 id="share-dialog-title" className="font-serif font-bold text-lg text-white">
+                Share Your Non-Purchase
+              </h3>
             </div>
             <button
+              ref={closeBtnRef}
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+              aria-label="Close share dialog"
+              className="p-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-400"
             >
               <X className="w-5 h-5" />
             </button>

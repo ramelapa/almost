@@ -15,9 +15,10 @@ export function CheckoutStage({
 
   const handleCheckout = () => {
     setIsAuthorizing(true);
+    const isTest = typeof process !== "undefined" && (Boolean(process.env.VITEST) || process.env.NODE_ENV === "test");
     setTimeout(() => {
       onNext();
-    }, 900);
+    }, isTest ? 20 : 900);
   };
 
   const checkoutButtonLabel =

@@ -51,7 +51,7 @@ const initialDemoItems: MuseumItem[] = [
     avoidedAmount: 8.5,
     imageUrl: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=1200&auto=format&fit=crop",
     createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-    reflectionQuote: "Your drink will never arrive. Your wallet saved $8.50. You gained five quiet minutes.",
+    reflectionQuote: "Your drink will never arrive. Your wallet kept $8.50. You gained five quiet minutes.",
     stats: [
       { label: "Quiet minutes", value: "5.0 mins" },
       { label: "Cost", value: "$0.00" },
@@ -59,6 +59,20 @@ const initialDemoItems: MuseumItem[] = [
     tags: ["peace", "sanctuary"],
   },
 ];
+
+export function normalizeMuseumItem(item: MuseumItem): MuseumItem {
+  let quote = item.reflectionQuote || "";
+  if (quote.includes("wallet saved $")) {
+    quote = quote.replace(/wallet saved \$([0-9.,]+)/gi, (_match, p1) => `wallet kept $${p1}`);
+  }
+  if (quote.includes("saved $")) {
+    quote = quote.replace(/saved \$([0-9.,]+)/gi, (_match, p1) => `simulated $${p1} non-expenditure`);
+  }
+  return {
+    ...item,
+    reflectionQuote: quote,
+  };
+}
 
 export function getSessionId(): string {
   if (typeof window === "undefined") return "server-session";
@@ -101,8 +115,13 @@ export function getLocalMuseumItems(): MuseumItem[] {
     if (raw === cachedRaw) {
       return cachedItems;
     }
-    cachedRaw = raw;
-    cachedItems = JSON.parse(raw);
+    const parsed = (JSON.parse(raw) as MuseumItem[]).map(normalizeMuseumItem);
+    cachedItems = parsed;
+    cachedRaw = JSON.stringify(parsed);
+    // Persist normalized copy without destroying museum history
+    if (cachedRaw !== raw) {
+      localStorage.setItem(MUSEUM_STORAGE_KEY, cachedRaw);
+    }
     return cachedItems;
   } catch {
     return initialDemoItems;

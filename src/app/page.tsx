@@ -1,12 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowRight, ShieldCheck, RefreshCw } from "lucide-react";
 import { Navbar, DopamineDial, TactileButton } from "@/packages/ui";
 import { Experience } from "@/packages/schemas";
 import { EngineRunner } from "@/packages/experience-engine";
-import { getLocalMuseumItems, addLocalMuseumItem, getSessionId } from "@/lib/storage";
+import {
+  subscribeMuseum,
+  getMuseumCountSnapshot,
+  getServerMuseumCountSnapshot,
+  addLocalMuseumItem,
+  getSessionId,
+} from "@/lib/storage";
 
 const suggestionPills = [
   { label: "Drive something ridiculous", prompt: "I want to drive an absurdly expensive sports car" },
@@ -31,8 +37,10 @@ export default function HomePage() {
   const [intensity, setIntensity] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
   const [activeExperience, setActiveExperience] = useState<Experience | null>(null);
-  const [museumCount, setMuseumCount] = useState(() =>
-    typeof window !== "undefined" ? getLocalMuseumItems().length : 0
+  const museumCount = useSyncExternalStore(
+    subscribeMuseum,
+    getMuseumCountSnapshot,
+    getServerMuseumCountSnapshot
   );
 
   const handleStartExperience = useCallback(
@@ -54,6 +62,9 @@ export default function HomePage() {
         if (!res.ok) throw new Error("Experience generation failed");
         const data: Experience = await res.json();
         setActiveExperience(data);
+        if (typeof window !== "undefined") {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
 
         // Track analytics anonymously
         fetch("/api/analytics", {
@@ -114,7 +125,6 @@ export default function HomePage() {
     };
 
     addLocalMuseumItem(newItem);
-    setMuseumCount((prev) => prev + 1);
 
     // Sync with server API
     fetch("/api/museum", {
@@ -147,7 +157,7 @@ export default function HomePage() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.4 }}
-            className="w-full flex-1 flex flex-col justify-center"
+            className="w-full flex-1 flex flex-col justify-start pt-2 md:pt-4"
           >
             {/* Top Back / Return button */}
             <div className="max-w-4xl mx-auto w-full px-4 mb-2 flex justify-between items-center">

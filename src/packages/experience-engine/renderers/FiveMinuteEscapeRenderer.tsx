@@ -68,6 +68,12 @@ export function FiveMinuteEscapeRenderer({
     }
   }, [stage.type]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [currentStageIdx]);
+
   const handleNext = () => {
     if (currentStageIdx < experience.stages.length - 1) {
       setCurrentStageIdx((prev) => prev + 1);
@@ -86,7 +92,7 @@ export function FiveMinuteEscapeRenderer({
   const currentSelection = selectedOptions[stage.id] || [];
 
   return (
-    <div className="w-full flex-1 flex flex-col justify-center py-12 relative z-10">
+    <div className="w-full flex-1 flex flex-col justify-start pt-2 md:pt-4 pb-16 relative z-10">
       <AnimatePresence mode="wait">
         {stage.type === "choice" && (
           <ChoiceStage

@@ -185,8 +185,8 @@ export class MockLLMProvider implements LLMProvider {
     return {
       id,
       type: "zero-cart",
-      title: product,
-      subtitle,
+      title: `${product} (Fictional Possession)`,
+      subtitle: `${subtitle} • Fictional Simulation • $0 Spent`,
       theme: {
         style: "luxury-obsidian",
         intensity,
@@ -211,7 +211,7 @@ export class MockLLMProvider implements LLMProvider {
           id: "stage-customize",
           type: "customize",
           title: "Bespoke Specification",
-          description: "Select your custom finish, interior upholstery, and performance package. Cost: $0.",
+          description: "Select your custom finish, interior upholstery, and performance package. Real cost: $0.",
           options: [
             { id: "opt-1", label: "Matte Obsidian & Liquid Gold Accents", price: 18500, highlight: "Curated" },
             { id: "opt-2", label: "Midnight Carbon Weave", price: 24000 },
@@ -224,7 +224,7 @@ export class MockLLMProvider implements LLMProvider {
           id: "stage-cart",
           type: "cart",
           title: "Imaginary Bag Summary",
-          description: "Review your configuration. Take a deep breath. Notice how clean your bank account remains.",
+          description: "Review your configuration. Take a deep breath. Notice how clean your bank account remains ($0).",
           options: [
             { id: "base", label: `Base ${product}`, price: fictionalPrice },
             { id: "bespoke", label: "Bespoke Upgrades & Delivery Crating", price: 28000 },
@@ -233,8 +233,8 @@ export class MockLLMProvider implements LLMProvider {
         {
           id: "stage-checkout",
           type: "checkout",
-          title: "Commit to the Imaginary Purchase",
-          description: "Slide to finalize. No credit card requested. No invoice will be filed.",
+          title: "Commit to the Imaginary Purchase — $0",
+          description: "Slide to finalize. No credit card requested. Fictional transaction ($0).",
         },
         {
           id: "stage-reflection",
@@ -245,13 +245,13 @@ export class MockLLMProvider implements LLMProvider {
       ],
       conclusion: {
         headline: "Congratulations. Nothing happened.",
-        message: `Your imaginary ${product} is officially yours. You experienced the surge of acquisition without the weight of possession.`,
+        message: `Your imaginary ${product} is officially yours. You experienced the surge of acquisition without the weight of possession. Real expenditure: $0.`,
         fictionalPrice,
         avoidedAmount: fictionalPrice,
         certificateTitle: `Certificate of Fictional Acquisition — ${product}`,
-        meTooPrompt: `Someone just didn't buy an imaginary ${product} for $${fictionalPrice.toLocaleString()}.`,
+        meTooPrompt: `Someone just simulated acquiring an imaginary ${product} ($0 spent).`,
         stats: [
-          { label: "Money spent", value: "$0" },
+          { label: "Real money spent", value: "$0" },
           { label: "Garage space used", value: "0 sq ft" },
           { label: "Insurance premium", value: "$0/mo" },
           { label: "Regret tomorrow", value: "probably $0" },
@@ -286,8 +286,8 @@ export class MockLLMProvider implements LLMProvider {
     return {
       id,
       type: "dream-trip",
-      title: `Expedition to ${destination}`,
-      subtitle: `${origin} → ${destination} &bull; 7-Day Curated Odyssey`,
+      title: `Expedition to ${destination} (Fictional Trip)`,
+      subtitle: `${origin} → ${destination} • Fictional Itinerary • $0 Cost`,
       theme: {
         style: "editorial-alpine",
         intensity,
@@ -334,23 +334,23 @@ export class MockLLMProvider implements LLMProvider {
         {
           id: "stage-checkout",
           type: "checkout",
-          title: "BOOK DREAM TRIP — $0",
-          description: "Finalize your fictional booking. Generate your instant VIP boarding pass.",
+          title: "BOOK FICTIONAL TRIP — $0",
+          description: "Finalize your fictional booking. Generate your instant VIP simulation boarding pass ($0).",
         },
         {
           id: "stage-reflection",
           type: "reflection",
           title: "Your Boarding Pass is Issued",
-          subtitle: "Ready for departure whenever your mind desires a quiet getaway.",
+          subtitle: "Ready for departure whenever your mind desires a quiet getaway. Fictional ticket.",
         },
       ],
       conclusion: {
         headline: "You have arrived without moving.",
-        message: `Your complete 7-day expedition to ${destination} is booked. Jetlag: zero hours. Packing anxiety: zero percent.`,
+        message: `Your complete fictional expedition to ${destination} is booked. Real money spent: $0. Jetlag: zero hours. Packing anxiety: zero percent.`,
         fictionalPrice: 28400,
         avoidedAmount: 28400,
         certificateTitle: `Official Fictional Boarding Pass — ${destination}`,
-        meTooPrompt: `Someone just booked an imaginary first-class trip to ${destination} for $0.`,
+        meTooPrompt: `Someone just booked a fictional luxury trip to ${destination} for $0.`,
         stats: [
           { label: "Flight & Stay cost", value: "$0" },
           { label: "Airport security wait", value: "0 mins" },
@@ -400,8 +400,8 @@ export class MockLLMProvider implements LLMProvider {
     return {
       id,
       type: "five-minute-escape",
-      title: place,
-      subtitle: "A silent interlude away from the noise of the world",
+      title: `${place} (Fictional Escape)`,
+      subtitle: "A silent simulated interlude away from the noise of the world • $0",
       theme: {
         style: "zen-monochrome",
         intensity,
@@ -425,7 +425,7 @@ export class MockLLMProvider implements LLMProvider {
           id: "stage-drink",
           type: "choice",
           title: drinkPrompt,
-          description: "What shall we prepare while you sit here in silence?",
+          description: "What shall we prepare for your imagination while you sit here in silence?",
           options: drinkOptions,
         },
         {
@@ -438,19 +438,19 @@ export class MockLLMProvider implements LLMProvider {
           id: "stage-reflection",
           type: "reflection",
           title: "The interlude is complete.",
-          subtitle: "Your drink will never arrive. Your wallet saved $8.50. You gained five quiet minutes.",
+          subtitle: "Your drink will never arrive. Your wallet kept $8.50. You gained five quiet minutes.",
         },
       ],
       conclusion: {
         headline: "You gained five quiet minutes.",
-        message: "Your drink will never arrive. Your wallet saved $8.50. The noise outside was paused.",
+        message: "Your drink will never arrive. Your wallet kept $8.50. The noise outside was paused.",
         fictionalPrice: 8.5,
         avoidedAmount: 8.5,
         certificateTitle: `Five-Minute Escape Token — ${place}`,
-        meTooPrompt: `Someone in the world is taking a quiet five-minute pause right now.`,
+        meTooPrompt: `Someone is taking a fictional five-minute escape right now.`,
         stats: [
           { label: "Quiet minutes gained", value: "5.0 mins" },
-          { label: "Wallet saved", value: "$8.50" },
+          { label: "Real money spent", value: "$0.00" },
           { label: "Cortisol reduction", value: "-34%" },
           { label: "Messages answered", value: "0" },
         ],
@@ -467,7 +467,7 @@ export class MockLLMProvider implements LLMProvider {
       id,
       type: "billion-dollar",
       title: "Billion Dollar Mode",
-      subtitle: "Starting Balance: $1,000,000,000. Spend it.",
+      subtitle: "Starting Fictional Balance: $1,000,000,000 (Imaginary Funds). Spend it.",
       theme: {
         style: "gold-monolith",
         intensity,
@@ -478,8 +478,8 @@ export class MockLLMProvider implements LLMProvider {
         {
           id: "stage-spree",
           type: "choice",
-          title: "The Extravagance Catalog",
-          description: "Every item is ready for instant acquisition. Add as many as your billion can endure.",
+          title: "The Extravagance Catalog (Fictional Assets)",
+          description: "Every item is ready for instant imaginary acquisition. Add as many as your billion can endure.",
           options: [
             { id: "b-1", label: "Sovereign Polynesian Atoll Island", description: "12 private white-sand beaches, airstrip, coral reef preserve", price: 145000000 },
             { id: "b-2", label: "450-ft Mega Yacht with Submarine Garage", description: "Helipad, two swimming pools, 24-person submarine", price: 320000000 },
@@ -493,14 +493,14 @@ export class MockLLMProvider implements LLMProvider {
         {
           id: "stage-checkout",
           type: "checkout",
-          title: "Authorize Imaginary Wire Transfer",
-          description: "Confirm transaction from your fictional sovereign trust.",
+          title: "Authorize Imaginary Wire Transfer — $0",
+          description: "Confirm simulated transaction from your fictional sovereign trust ($0 real money).",
         },
         {
           id: "stage-reflection",
           type: "reflection",
           title: "Transfer Finalized",
-          subtitle: "The balance has vanished. The bank account remains completely intact.",
+          subtitle: "The imaginary balance has vanished. The bank account remains completely intact.",
         },
       ],
       conclusion: {
@@ -508,8 +508,8 @@ export class MockLLMProvider implements LLMProvider {
         message: "You experienced the dizzying sensation of unlimited capital without a single audit.",
         fictionalPrice: 843220000,
         avoidedAmount: 843220000,
-        certificateTitle: "Billionaire Spending Certificate",
-        meTooPrompt: "Someone just spent an imaginary $843 million in two minutes.",
+        certificateTitle: "Billionaire Spending Certificate (Fictional)",
+        meTooPrompt: "Someone just spent a fictional $843 million in two minutes.",
         stats: [
           { label: "Imaginary amount spent", value: "$843,220,000" },
           { label: "Actual financial damage", value: "$0.00" },
@@ -548,8 +548,8 @@ export class MockLLMProvider implements LLMProvider {
     return {
       id,
       type: "quit-cart",
-      title: `Impulse Intercept: ${itemName}`,
-      subtitle: `Retail price: $${basePrice.toLocaleString()} &bull; Walk through the register, then walk away clean.`,
+      title: `Impulse Intercept: ${itemName} (Shopping Simulation)`,
+      subtitle: `Retail reference: $${basePrice.toLocaleString()} • Walk through the register, then walk away clean with $0 spent.`,
       theme: {
         style: "minimal-editorial",
         intensity,
@@ -560,8 +560,8 @@ export class MockLLMProvider implements LLMProvider {
         {
           id: "stage-config",
           type: "customize",
-          title: `Configure Your ${itemName}`,
-          description: "Select finish and storage tier to feel the full buying euphoria.",
+          title: `Configure Your ${itemName} (Simulation)`,
+          description: "Select finish and tier to feel the full buying euphoria without placing an order.",
           options: [
             { id: "c-1", label: "1TB Ultra Capacity Tier", price: 300, highlight: "Most Popular" },
             { id: "c-2", label: "Matte Cosmic Black Anodized Finish", price: 0 },
@@ -572,8 +572,8 @@ export class MockLLMProvider implements LLMProvider {
         {
           id: "stage-checkout",
           type: "checkout",
-          title: "COMMIT TO THE PURCHASE",
-          description: "Click to authorize payment. Watch what happens.",
+          title: "COMMIT TO SIMULATED CHECKOUT",
+          description: "Click to authorize simulated payment. No real money will be charged.",
         },
         {
           id: "stage-reflection",
@@ -588,7 +588,7 @@ export class MockLLMProvider implements LLMProvider {
         fictionalPrice: basePrice,
         avoidedAmount: basePrice,
         certificateTitle: `Temptation Intercept Certificate — ${itemName}`,
-        meTooPrompt: `Someone just walked away from a $${basePrice.toLocaleString()} checkout with their savings intact.`,
+        meTooPrompt: `Someone just walked away from a simulated $${basePrice.toLocaleString()} checkout with $0 spent.`,
         stats: [
           { label: "You kept", value: `$${basePrice.toLocaleString()}` },
           { label: "Actual purchase", value: "$0.00" },

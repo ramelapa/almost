@@ -97,11 +97,12 @@ export function ReflectionStage({
           </TactileButton>
         )}
 
-        <Link href="/">
-          <TactileButton variant="ghost" size="lg" className="gap-2">
-            <RefreshCw className="w-4 h-4 text-zinc-400" />
-            <span>Craving Something Else?</span>
-          </TactileButton>
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center select-none font-medium cursor-pointer transition-colors px-7 py-3.5 text-base font-semibold rounded-2xl gap-2 text-zinc-400 hover:text-white hover:bg-white/5"
+        >
+          <RefreshCw className="w-4 h-4 text-zinc-400" />
+          <span>Craving Something Else?</span>
         </Link>
       </div>
 

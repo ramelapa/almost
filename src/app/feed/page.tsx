@@ -64,8 +64,8 @@ export default function NothingFeedPage() {
         {/* Hero Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/40 border border-cyan-500/20 text-cyan-300 text-xs font-mono uppercase tracking-widest mb-4">
-            <Radio className="w-3.5 h-3.5 animate-pulse text-cyan-400" />
-            <span>Live Anonymous Stream</span>
+            <Radio className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Community Stream &bull; Non-Purchases</span>
           </div>
 
           <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-4">
@@ -73,7 +73,7 @@ export default function NothingFeedPage() {
           </h1>
 
           <p className="text-zinc-400 text-base md:text-lg font-light max-w-xl mx-auto leading-relaxed">
-            Real-time quiet solidarity from minds around the world experiencing everything and buying absolutely nothing.
+            Quiet solidarity from minds around the world experiencing everything and buying absolutely nothing. Features simulated demonstration moments and real anonymous session activity.
           </p>
 
           <div className="mt-4 inline-flex items-center gap-2 text-[11px] font-mono text-zinc-500 bg-white/5 px-3 py-1 rounded-full border border-white/5">
@@ -96,15 +96,25 @@ export default function NothingFeedPage() {
                 className="p-5 md:p-6 rounded-3xl bg-zinc-950/70 border border-white/10 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-white/20 transition-all shadow-lg"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 mt-2 shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.8)]" />
+                  <div
+                    className={`w-2.5 h-2.5 rounded-full mt-2 shrink-0 ${
+                      item.isDemo
+                        ? "bg-zinc-600"
+                        : "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)] animate-pulse"
+                    }`}
+                  />
                   <div>
                     <div className="flex items-center gap-2 mb-1 font-mono text-xs text-zinc-500">
                       <span className="text-zinc-300 font-semibold">{item.location}</span>
                       <span>&bull;</span>
                       <span>{item.timestamp}</span>
-                      {item.isDemo && (
-                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/5 text-zinc-500">
-                          simulated
+                      {item.isDemo ? (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-300 font-mono">
+                          Demonstration Entry
+                        </span>
+                      ) : (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-emerald-300 font-mono">
+                          Live User Action
                         </span>
                       )}
                     </div>
@@ -113,7 +123,7 @@ export default function NothingFeedPage() {
                     </p>
                     {item.avoidedAmount > 0 && (
                       <span className="inline-block mt-2 text-xs font-mono text-emerald-400">
-                        Kept: ${item.avoidedAmount.toLocaleString()}
+                        Imaginary expense avoided: ${item.avoidedAmount.toLocaleString()}
                       </span>
                     )}
                   </div>

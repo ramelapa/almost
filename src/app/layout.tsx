@@ -38,6 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${outfit.variable} ${playfair.variable} ${spaceMono.variable} h-full dark`}
     >
       <body className="min-h-full flex flex-col bg-[#06070a] text-zinc-100 selection:bg-amber-400 selection:text-black antialiased relative">

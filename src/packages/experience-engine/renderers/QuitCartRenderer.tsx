@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import confetti from "canvas-confetti";
 import { Experience } from "../../schemas";
 import { CustomizeStage } from "../stages/CustomizeStage";
 import { CheckoutStage } from "../stages/CheckoutStage";
-import { ReflectionStage } from "../stages/ReflectionStage";
 import { InvestmentGrowthCard } from "../../ui/InvestmentGrowthCard";
 import { ShareCardModal } from "../../ui/ShareCardModal";
-import { Ban } from "lucide-react";
+import { TactileButton } from "../../ui";
+import { Ban, Landmark, Share2, RefreshCw, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 
 interface QuitCartRendererProps {
   experience: Experience;
@@ -26,9 +28,31 @@ export function QuitCartRenderer({
     "stage-config": ["c-1", "c-3"],
   });
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [hasAddedToMuseum, setHasAddedToMuseum] = useState(false);
 
   const stage = experience.stages[currentStageIdx] || experience.stages[0];
   const basePrice = experience.metadata?.basePrice || experience.conclusion.avoidedAmount || 1499;
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [currentStageIdx]);
+
+  useEffect(() => {
+    if (stage.type === "reflection") {
+      try {
+        confetti({
+          particleCount: 60,
+          spread: 60,
+          origin: { y: 0.6 },
+          colors: ["#10b981", "#34d399", "#f59e0b", "#ffffff"],
+        });
+      } catch {
+        // Ignore if unsupported
+      }
+    }
+  }, [stage.type]);
 
   const handleNext = () => {
     if (currentStageIdx < experience.stages.length - 1) {
@@ -56,10 +80,15 @@ export function QuitCartRenderer({
     });
   };
 
+  const handleAddToMuseumClick = () => {
+    setHasAddedToMuseum(true);
+    if (onAddToMuseum) onAddToMuseum();
+  };
+
   const currentSelection = selectedOptions[stage.id] || [];
 
   return (
-    <div className="w-full flex-1 flex flex-col justify-center py-12 relative z-10">
+    <div className="w-full flex-1 flex flex-col justify-start pt-2 md:pt-4 pb-12 relative z-10">
       <AnimatePresence mode="wait">
         {stage.type === "customize" && (
           <CustomizeStage
@@ -86,56 +115,96 @@ export function QuitCartRenderer({
         )}
 
         {stage.type === "reflection" && (
-          <div key={stage.id} className="flex flex-col items-center">
-            {/* Dramatic Cancellation Banner */}
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              className="w-full max-w-2xl mx-auto p-6 rounded-3xl bg-rose-950/40 border border-rose-500/30 text-center mb-4"
-            >
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rose-500/20 text-rose-300 mb-3">
-                <Ban className="w-6 h-6" />
+          <motion.div
+            key="unified-quit-cart-conclusion"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
+            className="flex flex-col items-center max-w-3xl mx-auto px-4 py-4 text-center w-full"
+          >
+            {/* Single Unified Dramatic Cancellation Banner */}
+            <div className="w-full p-6 md:p-8 rounded-3xl bg-zinc-950/80 border border-emerald-500/30 text-center shadow-2xl backdrop-blur-xl mb-6">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-mono mb-4">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Impulse Intercepted &bull; $0 Paid</span>
               </div>
-              <h2 className="text-3xl md:text-4xl font-serif font-black text-white tracking-wide uppercase mb-2">
+
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-rose-500/20 text-rose-300 mb-3 mx-auto">
+                <Ban className="w-7 h-7" />
+              </div>
+
+              <h1 className="text-3xl md:text-5xl font-serif font-black text-white tracking-wide uppercase mb-3">
                 ORDER CANCELED SUCCESSFULLY
-              </h2>
-              <div className="flex justify-center gap-8 font-mono text-sm pt-2">
-                <div>
-                  <span className="text-zinc-400 block text-xs">You Kept:</span>
-                  <span className="text-emerald-400 text-xl font-bold">
+              </h1>
+
+              <p className="text-zinc-300 text-sm md:text-base max-w-xl mx-auto mb-6 font-light leading-relaxed">
+                You walked right to the edge of the checkout button and stepped back. You kept your money while experiencing the full buying ritual.
+              </p>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto font-mono text-center">
+                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                  <span className="text-[10px] text-zinc-500 uppercase block">You Kept</span>
+                  <span className="text-xl font-bold text-emerald-400">
                     ${basePrice.toLocaleString()}
                   </span>
                 </div>
-                <div className="h-8 w-px bg-white/10" />
-                <div>
-                  <span className="text-zinc-400 block text-xs">Actual Purchase:</span>
-                  <span className="text-white text-xl font-bold">$0.00</span>
+                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                  <span className="text-[10px] text-zinc-500 uppercase block">Actual Cost</span>
+                  <span className="text-xl font-bold text-white">$0.00</span>
+                </div>
+                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                  <span className="text-[10px] text-zinc-500 uppercase block">Remorse Tomorrow</span>
+                  <span className="text-xl font-bold text-amber-300">0%</span>
+                </div>
+                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                  <span className="text-[10px] text-zinc-500 uppercase block">Fictional Cart</span>
+                  <span className="text-xl font-bold text-cyan-400">Voided</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Educational Compounding Visualization */}
             <InvestmentGrowthCard amountSaved={basePrice} assumedAnnualRate={0.07} />
 
-            <ReflectionStage
-              stage={stage}
-              experience={experience}
-              onNext={handleNext}
-              onSelectOption={handleSelectOption}
-              selectedOptionIds={currentSelection}
-              isLastStage={true}
-              onAddToMuseum={onAddToMuseum}
-              onShare={() => setIsShareOpen(true)}
-            />
-          </div>
+            {/* Single Action Row */}
+            <div className="flex flex-wrap items-center justify-center gap-4 w-full mt-4">
+              <TactileButton
+                variant={hasAddedToMuseum ? "secondary" : "gold"}
+                size="lg"
+                onClick={handleAddToMuseumClick}
+                disabled={hasAddedToMuseum}
+                className="gap-2.5"
+              >
+                <Landmark className="w-4 h-4 text-zinc-950" />
+                <span>{hasAddedToMuseum ? "Saved to Museum" : "Add to My Museum"}</span>
+              </TactileButton>
+
+              <TactileButton
+                variant="glass"
+                size="lg"
+                onClick={() => setIsShareOpen(true)}
+                className="gap-2.5"
+              >
+                <Share2 className="w-4 h-4 text-cyan-400" />
+                <span>Share Artifact</span>
+              </TactileButton>
+
+              <Link
+                href="/"
+                className="inline-flex items-center justify-center select-none font-medium cursor-pointer transition-colors px-7 py-3.5 text-base font-semibold rounded-2xl gap-2 text-zinc-400 hover:text-white hover:bg-white/5"
+              >
+                <RefreshCw className="w-4 h-4 text-zinc-400" />
+                <span>Craving Something Else?</span>
+              </Link>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
       <ShareCardModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        experienceTitle={`Saved $${basePrice.toLocaleString()} on ${experience.metadata?.itemName || experience.title}`}
+        experienceTitle={`Avoided $${basePrice.toLocaleString()} purchase on ${experience.metadata?.itemName || experience.title}`}
         experienceType="QuitCart"
         fictionalPrice={basePrice}
         avoidedPrice={basePrice}

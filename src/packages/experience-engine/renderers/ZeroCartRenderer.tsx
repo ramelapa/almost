@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Experience } from "../../schemas";
 import { SceneStage } from "../stages/SceneStage";
@@ -26,6 +26,12 @@ export function ZeroCartRenderer({
     "stage-customize": ["opt-1"],
   });
   const [isShareOpen, setIsShareOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [currentStageIdx]);
 
   const stage = experience.stages[currentStageIdx] || experience.stages[0];
 
@@ -58,7 +64,7 @@ export function ZeroCartRenderer({
   const currentSelection = selectedOptions[stage.id] || [];
 
   return (
-    <div className="w-full flex-1 flex flex-col justify-center py-12 relative z-10">
+    <div className="w-full flex-1 flex flex-col justify-start pt-2 md:pt-4 pb-16 relative z-10">
       <AnimatePresence mode="wait">
         {stage.type === "scene" && (
           <SceneStage

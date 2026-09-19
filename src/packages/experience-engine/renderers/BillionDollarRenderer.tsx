@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Experience } from "../../schemas";
 import { CheckoutStage } from "../stages/CheckoutStage";
@@ -17,14 +17,14 @@ interface BillionDollarRendererProps {
 }
 
 const defaultBillionCatalog = [
-  { id: "b-1", label: "Polynesian Atoll Sovereign Island", price: 145000000, category: "Real Estate" },
-  { id: "b-2", label: "450-ft Mega Yacht with Submarine Bay", price: 320000000, category: "Maritime" },
-  { id: "b-3", label: "Premier League Historic Football Club", price: 420000000, category: "Sports" },
-  { id: "b-4", label: "Lunar Colony Geodesic Biodome", price: 250000000, category: "Space" },
-  { id: "b-5", label: "Manhattan Art-Deco Penthouse Skyscraper", price: 180000000, category: "Architecture" },
-  { id: "b-6", label: "Private Daft Punk Backyard Pyramid Show", price: 35000000, category: "Culture" },
-  { id: "b-7", label: "Fleet of 10 Bespoke Carbon Hypercars", price: 40000000, category: "Automotive" },
-  { id: "b-8", label: "Subterranean Luxury Doomsday Haven", price: 65000000, category: "Shelter" },
+  { id: "b-1", label: "Polynesian Atoll Sovereign Island", price: 145000000, category: "Real Estate (Fictional)" },
+  { id: "b-2", label: "450-ft Mega Yacht with Submarine Bay", price: 320000000, category: "Maritime (Fictional)" },
+  { id: "b-3", label: "Premier League Historic Football Club", price: 420000000, category: "Sports (Fictional)" },
+  { id: "b-4", label: "Lunar Colony Geodesic Biodome", price: 250000000, category: "Space (Fictional)" },
+  { id: "b-5", label: "Manhattan Art-Deco Penthouse Skyscraper", price: 180000000, category: "Architecture (Fictional)" },
+  { id: "b-6", label: "Private Daft Punk Backyard Pyramid Show", price: 35000000, category: "Culture (Fictional)" },
+  { id: "b-7", label: "Fleet of 10 Bespoke Carbon Hypercars", price: 40000000, category: "Automotive (Fictional)" },
+  { id: "b-8", label: "Subterranean Luxury Doomsday Haven", price: 65000000, category: "Shelter (Fictional)" },
 ];
 
 export function BillionDollarRenderer({
@@ -40,6 +40,12 @@ export function BillionDollarRenderer({
   });
   const [currentStageIdx, setCurrentStageIdx] = useState(0);
   const [isShareOpen, setIsShareOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [currentStageIdx]);
 
   const spentAmount = defaultBillionCatalog.reduce(
     (sum, item) => sum + (quantities[item.id] || 0) * item.price,
@@ -73,34 +79,34 @@ export function BillionDollarRenderer({
     }));
 
   return (
-    <div className="w-full flex-1 flex flex-col justify-center py-12 relative z-10">
+    <div className="w-full flex-1 flex flex-col justify-start pt-2 md:pt-4 pb-16 relative z-10">
       {/* Persistent Ticker Bar for Billion Mode */}
-      <div className="sticky top-20 z-30 max-w-4xl mx-auto w-full px-4 mb-6">
-        <div className="rounded-2xl bg-zinc-950/90 border border-amber-400/30 p-4 shadow-2xl backdrop-blur-xl flex flex-wrap items-center justify-between gap-4">
+      <div className="sticky top-16 z-30 max-w-4xl mx-auto w-full px-4 mb-4">
+        <div className="rounded-2xl bg-zinc-950/95 border border-amber-400/30 p-3 sm:p-4 shadow-2xl backdrop-blur-2xl flex flex-wrap items-center justify-between gap-3">
           <div>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 block">
-              Remaining Imaginary Balance
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 block">
+              Imaginary Balance &bull; Fictional Simulation
             </span>
-            <span className="text-2xl md:text-3xl font-mono font-black text-amber-300">
+            <span className="text-xl sm:text-2xl md:text-3xl font-mono font-black text-amber-300">
               ${remaining.toLocaleString()}
             </span>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
             <div className="text-right">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 block">
-                Total Expended
+              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 block">
+                Fictional Expended
               </span>
-              <span className="text-lg font-mono font-bold text-rose-400">
+              <span className="text-sm sm:text-base font-mono font-bold text-rose-400">
                 ${spentAmount.toLocaleString()}
               </span>
             </div>
-            <div className="h-8 w-px bg-white/10 hidden sm:block" />
+            <div className="h-7 w-px bg-white/10 hidden sm:block" />
             <div className="text-right">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 block">
-                Real Out-of-Pocket
+              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 block">
+                Actual Cost
               </span>
-              <span className="text-lg font-mono font-bold text-emerald-400">$0.00</span>
+              <span className="text-sm sm:text-base font-mono font-bold text-emerald-400">$0.00</span>
             </div>
           </div>
         </div>
@@ -113,14 +119,14 @@ export function BillionDollarRenderer({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="flex flex-col items-center max-w-4xl mx-auto px-4 py-6"
+            className="flex flex-col items-center max-w-4xl mx-auto px-4 pt-2 pb-6"
           >
             <div className="text-center mb-6">
               <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-2">
                 The Extravagance Catalog
               </h2>
               <p className="text-zinc-400 max-w-md mx-auto text-sm">
-                You have $1,000,000,000. Add sovereign assets until you satisfy your inner billionaire.
+                You have $1,000,000,000 in simulated wealth. Add fictional sovereign assets until you satisfy your curiosity.
               </p>
             </div>
 
@@ -154,14 +160,14 @@ export function BillionDollarRenderer({
                           type="button"
                           onClick={() => handleUpdateQuantity(item.id, -1)}
                           disabled={qty === 0}
-                          className="p-1 rounded-lg bg-zinc-900 text-zinc-300 hover:text-white disabled:opacity-30 border border-white/5"
+                          className="p-1 rounded-lg bg-zinc-900 text-zinc-300 hover:text-white disabled:opacity-30 border border-white/5 cursor-pointer"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => handleUpdateQuantity(item.id, 1)}
-                          className="p-1 rounded-lg bg-amber-400 text-zinc-950 font-bold hover:bg-amber-300"
+                          className="p-1 rounded-lg bg-amber-400 text-zinc-950 font-bold hover:bg-amber-300 cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -198,7 +204,7 @@ export function BillionDollarRenderer({
         )}
 
         {currentStageIdx === 2 && (
-          <div key="stage-reflection" className="flex flex-col items-center">
+          <div key="stage-reflection" className="flex flex-col items-center pt-2">
             {/* Show Billionaire Receipt */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}

@@ -70,15 +70,40 @@ export function getSessionId(): string {
   return sessionId;
 }
 
+let cachedRaw: string | null = null;
+let cachedItems: MuseumItem[] = initialDemoItems;
+let cachedSummary: MuseumSummary = {
+  thingsNotBoughtCount: initialDemoItems.length,
+  imaginarySpendingAvoided: initialDemoItems.reduce((s, i) => s + i.avoidedAmount, 0),
+  curiosityMomentsExperienced: initialDemoItems.length * 2 + 14,
+};
+
+export function subscribeMuseum(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("storage", callback);
+  window.addEventListener("almost_museum_updated", callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("almost_museum_updated", callback);
+  };
+}
+
 export function getLocalMuseumItems(): MuseumItem[] {
   if (typeof window === "undefined") return initialDemoItems;
   try {
     const raw = localStorage.getItem(MUSEUM_STORAGE_KEY);
     if (!raw) {
       localStorage.setItem(MUSEUM_STORAGE_KEY, JSON.stringify(initialDemoItems));
+      cachedRaw = JSON.stringify(initialDemoItems);
+      cachedItems = initialDemoItems;
       return initialDemoItems;
     }
-    return JSON.parse(raw);
+    if (raw === cachedRaw) {
+      return cachedItems;
+    }
+    cachedRaw = raw;
+    cachedItems = JSON.parse(raw);
+    return cachedItems;
   } catch {
     return initialDemoItems;
   }
@@ -89,7 +114,11 @@ export function addLocalMuseumItem(item: MuseumItem): void {
   try {
     const current = getLocalMuseumItems();
     const updated = [item, ...current.filter((i) => i.id !== item.id)];
-    localStorage.setItem(MUSEUM_STORAGE_KEY, JSON.stringify(updated));
+    const raw = JSON.stringify(updated);
+    localStorage.setItem(MUSEUM_STORAGE_KEY, raw);
+    cachedRaw = raw;
+    cachedItems = updated;
+    window.dispatchEvent(new Event("almost_museum_updated"));
   } catch (err) {
     console.error("Failed to persist museum item locally", err);
   }
@@ -98,11 +127,40 @@ export function addLocalMuseumItem(item: MuseumItem): void {
 export function getLocalMuseumSummary(): MuseumSummary {
   const items = getLocalMuseumItems();
   const totalAvoided = items.reduce((sum, item) => sum + item.avoidedAmount, 0);
-  return {
+  if (
+    cachedSummary.thingsNotBoughtCount === items.length &&
+    cachedSummary.imaginarySpendingAvoided === totalAvoided
+  ) {
+    return cachedSummary;
+  }
+  cachedSummary = {
     thingsNotBoughtCount: items.length,
     imaginarySpendingAvoided: totalAvoided,
     curiosityMomentsExperienced: items.length * 2 + 14,
   };
+  return cachedSummary;
+}
+
+export function getServerMuseumSnapshot(): MuseumItem[] {
+  return initialDemoItems;
+}
+
+const serverSummarySnapshot: MuseumSummary = {
+  thingsNotBoughtCount: initialDemoItems.length,
+  imaginarySpendingAvoided: initialDemoItems.reduce((s, i) => s + i.avoidedAmount, 0),
+  curiosityMomentsExperienced: initialDemoItems.length * 2 + 14,
+};
+
+export function getServerMuseumSummarySnapshot(): MuseumSummary {
+  return serverSummarySnapshot;
+}
+
+export function getMuseumCountSnapshot(): number {
+  return getLocalMuseumItems().length;
+}
+
+export function getServerMuseumCountSnapshot(): number {
+  return initialDemoItems.length;
 }
 
 export const initialFeedItems: FeedItem[] = [

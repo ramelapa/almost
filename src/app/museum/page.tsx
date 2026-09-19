@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -11,21 +11,31 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/packages/ui";
 import { ShareCardModal } from "@/packages/ui/ShareCardModal";
-import { MuseumItem, MuseumSummary } from "@/packages/schemas";
-import { getLocalMuseumItems, getLocalMuseumSummary } from "@/lib/storage";
+import { MuseumItem } from "@/packages/schemas";
+import {
+  subscribeMuseum,
+  getLocalMuseumItems,
+  getLocalMuseumSummary,
+  getServerMuseumSnapshot,
+  getServerMuseumSummarySnapshot,
+} from "@/lib/storage";
+
+const formatFictionalDate = (isoString: string) => {
+  const d = new Date(isoString);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+};
 
 export default function MuseumPage() {
-  const [items] = useState<MuseumItem[]>(() =>
-    typeof window !== "undefined" ? getLocalMuseumItems() : []
+  const items = useSyncExternalStore(
+    subscribeMuseum,
+    getLocalMuseumItems,
+    getServerMuseumSnapshot
   );
-  const [summary] = useState<MuseumSummary>(() =>
-    typeof window !== "undefined"
-      ? getLocalMuseumSummary()
-      : {
-          thingsNotBoughtCount: 0,
-          imaginarySpendingAvoided: 0,
-          curiosityMomentsExperienced: 0,
-        }
+  const summary = useSyncExternalStore(
+    subscribeMuseum,
+    getLocalMuseumSummary,
+    getServerMuseumSummarySnapshot
   );
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [inspectingItem, setInspectingItem] = useState<MuseumItem | null>(null);
@@ -76,7 +86,7 @@ export default function MuseumPage() {
           </p>
         </div>
 
-        {/* Top Summary Metrics Matrix (Section 9 Specification) */}
+        {/* Top Summary Metrics Matrix */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mb-12">
           <div className="p-6 rounded-3xl bg-zinc-950/70 border border-white/10 backdrop-blur-xl flex flex-col items-center text-center">
             <span className="text-xs font-mono uppercase tracking-widest text-zinc-500 mb-1">
@@ -95,7 +105,7 @@ export default function MuseumPage() {
             <span className="text-3xl md:text-4xl font-mono font-black text-amber-300">
               ${summary.imaginarySpendingAvoided.toLocaleString()}
             </span>
-            <span className="text-[11px] text-emerald-400 mt-2 font-mono">100% saved in real life</span>
+            <span className="text-[11px] text-amber-400/80 mt-2 font-mono">Simulated non-expenditure</span>
           </div>
 
           <div className="p-6 rounded-3xl bg-zinc-950/70 border border-white/10 backdrop-blur-xl flex flex-col items-center text-center">
@@ -168,8 +178,8 @@ export default function MuseumPage() {
                   </div>
 
                   <div className="absolute bottom-3 right-3">
-                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-950/80 backdrop-blur-md border border-emerald-500/30 text-emerald-300">
-                      Saved: ${item.avoidedAmount.toLocaleString()}
+                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-zinc-950/90 backdrop-blur-md border border-amber-400/40 text-amber-300">
+                      Avoided: ${item.avoidedAmount.toLocaleString()} (fictional)
                     </span>
                   </div>
                 </div>
@@ -194,11 +204,7 @@ export default function MuseumPage() {
                   <div className="pt-4 border-t border-white/5 flex items-center justify-between mt-4">
                     <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      {new Date(item.createdAt).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatFictionalDate(item.createdAt)}
                     </span>
 
                     <button

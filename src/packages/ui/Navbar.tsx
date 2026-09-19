@@ -71,15 +71,12 @@ export function Navbar({ onSurpriseMe, museumCount = 0 }: NavbarProps) {
               <span>Surprise Me</span>
             </TactileButton>
           ) : (
-            <Link href="/?surprise=true">
-              <TactileButton
-                variant="glass"
-                size="sm"
-                className="text-xs font-mono"
-              >
-                <Sparkles className="w-3 h-3 text-amber-300" />
-                <span>Surprise Me</span>
-              </TactileButton>
+            <Link
+              href="/?surprise=true"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded-lg bg-white/5 backdrop-blur-xl text-zinc-100 border border-white/15 hover:bg-white/10 hover:border-white/25 shadow-xl transition-all"
+            >
+              <Sparkles className="w-3 h-3 text-amber-300" />
+              <span>Surprise Me</span>
             </Link>
           )}
 
